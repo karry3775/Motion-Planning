@@ -18,8 +18,10 @@ def env_setup():
     plt.gca().add_patch(c1)
     plt.gca().add_patch(c2)
     plt.gca().add_patch(c3)
-    root = [5,5]
-    plt.plot(5,5,'^g')
+    root = [9,1,0]
+    goal = [1,2,pi/2]
+    plt.plot(root[0],root[1],'^g')
+    plt.plot(goal[0],goal[1],"^k")
 
 
 def plot_path(path_pts):
@@ -119,18 +121,36 @@ def obstacle_check(path_pts):
             break
     return flag
 
+def goal_check(X_new,goal):
+    x_new = X_new[0]
+    y_new = X_new[1]
+    theta_new =  X_new[2]
+
+    x_g = goal[0]
+    y_g = goal[1]
+    theta_g = goal[2]
+    flag = 0
+    d = sqrt((x_new-x_g)**2 + (y_new-y_g)**2)
+    # t_d = abs(theta_g - theta_new)
+    if d<=0.1:# and# t_d <=0.1:
+        print("Goal Reached")
+        flag = 1
+
+    return flag
+
 
 def rrt_with_constraints():
-    root = [5,5,0] #x,y,theta
+    root = [9,1,0] #x,y,theta
+    goal = [1,2,pi/2]
     V = []
     E = []
     paths = []
-    iter = 300
-    st_ang = 1 #steering angle for minimum turning radius
+    iter = 1000
+    st_ang = pi/7 #steering angle for minimum turning radius pi/7 and 0.1 hsa been working best
     int_t = 1 #integration time
-    vel = 0.5
+    vel = 0.1
     k = 0
-    for i in range(iter):
+    while True:
         if k==0:
             V.append(root)
             k+=1
@@ -138,21 +158,30 @@ def rrt_with_constraints():
         if k==1:
             x_rnd = random.uniform(0,10)
             y_rnd = random.uniform(0,10)
-            x_prev = V[i-1][0]
-            y_prev = V[i-1][1]
-            theta_prev = V[i-1][2]
+            x_prev = root[0]
+            y_prev = root[1]
+            theta_prev = root[2]
             path_pts = local_planner([x_rnd,y_rnd],[x_prev,y_prev,theta_prev],st_ang,vel,int_t)
             #obstacle check
             if obstacle_check(path_pts) == 1:
                 continue
             X_new = path_pts[-1]
+            if goal_check(X_new,goal) == 1:
+                break
             V.append(X_new)
+            E.append([root,X_new])
             paths.append(path_pts)
             plot_path(path_pts)
             k+=1
             continue
-        x_rnd = random.uniform(0,10)
-        y_rnd = random.uniform(0,10)
+
+        if random.uniform(0,100) < 50:
+            x_rnd = random.uniform(0,10)
+            y_rnd = random.uniform(0,10)
+        else:
+            x_rnd = goal[0]
+            y_rnd = goal[1]
+
         nind = get_nearest([x_rnd,y_rnd],V)
         X_near = V[nind]
         X_rnd = [x_rnd,y_rnd]
@@ -160,11 +189,15 @@ def rrt_with_constraints():
         if obstacle_check(path_pts) == 1:
             continue
         X_new = path_pts[-1]
+        if goal_check(X_new,goal) == 1:
+            break
         V.append(X_new)
+        E.append([V[-2],V[-1]])
         paths.append(path_pts)
         plot_path(path_pts)
         plt.pause(0.0000000000001)
     plt.show()
+    print(E)
 
 
 
