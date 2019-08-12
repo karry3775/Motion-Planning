@@ -35,6 +35,7 @@ def animate_robot(pt):
     pass
 
 def main():
+    plt.figure(figsize=(10,8))
     x_max = 20
     y_max = 20
     obstacles = [[10,0],[10,1],[10,2],[10,3], \
