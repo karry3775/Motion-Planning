@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
-DISABLE_WHEEL= True
-DISABLE_ARROW = True
-BIG_CIRCLE = False
+DISABLE_WHEEL= False
+DISABLE_ARROW = False
+BIG_CIRCLE = True
 
 def draw_robot(x,y,theta):
     X = np.array([0,0,1]).T
@@ -57,7 +57,7 @@ def draw_robot(x,y,theta):
         plt.plot([h[0],e[0]],[h[1],e[1]],'k')
 
     plt.axis('scaled')
-    plt.xlim(-3,10)
+    plt.xlim(-2,15)
     plt.ylim(-3,10)
     # plt.show()
 
