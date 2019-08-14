@@ -8,6 +8,7 @@ import copy
 
 DRAW_PALLET = True
 DRAW_DIFF = False
+ALIGN_TO_GOAL_LINE = False
 
 def update(x,y,theta,v,s):
     dt = 0.1
@@ -23,7 +24,7 @@ def wrapToPi(theta):
 def calc_perp(x,y,pt1,pt2):
     #this also needs to tell me if the xt,yt point has gone beyond pt2
     skip = False
-    ld = 1
+    ld = 0.5
     #find the equation of the line
     x1,y1 = pt1
     x2,y2 = pt2
@@ -33,8 +34,8 @@ def calc_perp(x,y,pt1,pt2):
         intercept = y1 - slope*x1
         xp = (x + slope*y - slope*intercept)/(1+slope**2)
         yp = intercept + slope*xp
-        xt = xp + m.cos(phi)
-        yt = yp + m.sin(phi)
+        xt = xp + m.cos(phi)*ld
+        yt = yp + m.sin(phi)*ld
         #checking if it has crossed pt2
         check_angle = m.atan2((yt-y2),(xt-x2))
         if check_angle == phi:
@@ -84,8 +85,9 @@ def calc_target(x,y,goal_points):
 
 def seek_one(start,goal):
     x,y,theta = start
-    Kp = 1
+    Kp = 0.85
     Kpd = 0.1
+    v = 1
     #thets calculations
     beta = m.atan2((goal[1]-y),(goal[0]-x))
     dist_error = m.sqrt((x-goal[0])**2 + (y-goal[1])**2)
@@ -97,25 +99,139 @@ def seek_one(start,goal):
     if s<-m.pi/2:
         s = -m.pi/2
     # if abs(heading_error)>m.pi/2:
-    #     s = -s
+    #     v = -v
     #
-    # v = Kpd*dist_error + 0.1
+
     x,y,theta = update(x,y,theta,v,s)
     return x,y,theta,s
 
+def path_track(path):
+    xstart, ystart = path[0]
+    start = [xstart,ystart,0]
+    goal_points = path
+    dummy_gp = copy.deepcopy(goal_points)
+    #need to calculate goal theta last two points
+    last_pt = dummy_gp[-1]
+    second_last_pt = dummy_gp[-2]
+    theta_g = m.atan2((last_pt[1]-second_last_pt[1]),(last_pt[0]-second_last_pt[0]))
+    goalx,goaly = path[-1]
+    goal = [goalx,goaly,theta_g]
+    # goal_points = [[2,2]]
+    x,y,theta = start
+    v = 1
+    s = 0
+    gp_array = np.array(goal_points)
+    x_traj = []
+    y_traj = []
+
+
+    skip = False
+    while len(dummy_gp) >1:
+        #first step would be to find the target point
+        target,proximity,skip = calc_target(x,y,dummy_gp)
+        xt,yt = target
+        if proximity<0.1 or skip==True:
+            dummy_gp.pop(0)
+        if skip==True:
+            print(skip)
+        plt.cla()
+        plt.axis('scaled')
+        plt.xlim(-5,15)
+        plt.ylim(-5,15)
+        plt.plot(gp_array[:,0],gp_array[:,1])
+        plt.plot(start[0],start[1],'co')
+        plt.plot(xt,yt,'ro')
+
+        if DRAW_DIFF:
+            draw_robot(x,y,theta)
+        if DRAW_PALLET:
+            dpj(x,y,theta,s)
+
+        x_traj.append(x)
+        y_traj.append(y)
+        plt.plot(x_traj,y_traj,'--')
+        x,y,theta,s = seek_one([x,y,theta],[xt,yt])
+        print(m.degrees(s))
+        plt.pause(0.0001)
+    if ALIGN_TO_GOAL_LINE:
+        pt1 = goal_points[-2]
+        pt2 = goal_points[-1]
+        while wrapToPi(abs(theta - goal[2]))>0.1:
+            _,_,xt,yt,_ = calc_perp(x,y,pt1,pt2)
+            plt.cla()
+            plt.axis('scaled')
+            plt.xlim(-5,15)
+            plt.ylim(-5,15)
+            plt.plot(gp_array[:,0],gp_array[:,1])
+            plt.plot(start[0],start[1],'co')
+            plt.plot(xt,yt,'ro')
+
+            if DRAW_DIFF:
+                draw_robot(x,y,theta)
+            if DRAW_PALLET:
+                dpj(x,y,theta,s)
+
+            x_traj.append(x)
+            y_traj.append(y)
+            plt.plot(x_traj,y_traj,'--')
+            x,y,theta,s = seek_one([x,y,theta],[xt,yt])
+            print(m.degrees(s))
+            plt.pause(0.0001)
+    # plt.show()
+
+"""
+ DEMO CODE
+"""
 
 # start = [2.5,10,0]
 # goal_points = [[5,8],[10,5],[15,9],[20,1],[25,21],[1,20],[3,25]] #successfull path follow
 # start = [0,0,0]
 # goal_points = [[1,2],[2,4],[3,5],[4,7],[5,8]] # successfull path follow
-start = [-2,-2,0]
-goal_points = [[0,0],[1.98,2.375],[4.04,4.23],[6.28,5],[8.75,4.079],[10.51,2.45],[12,0],[14,-2]] #succesfull
+# start = [-2,-2,0]
+# goal_points = [[0,0],[1.98,2.375],[4.04,4.23],[6.28,5],[8.75,4.079],[10.51,2.45],[12,0],[14,-2]] #succesfull
 # start = [0,0,0]
 # goal_points = [[0,0],[2,2],[6,7],[9,10]] #succesfull
+# start =[0,0,0]
+# goal_points =[[0,0],[5,5],[7,0]]
 # start = [-2,-2,0]
 # goal_points = [[0,0],[1,2],[1,-5],[5,6]]
+"""
+SQUARE DEMO
+"""
+start = [0,0,0]
+goal_points = [[0,0],[10,0],[10,10],[0,10],[0,0],[10,0],[10,10],[0,10],[0,0],[10,0],[10,10],[0,10],[0,0]] #circular polygon follow
+"""
+SPIRAL DEMO
+"""
+start = [0,0,0]
+goal_points = [[0,0],[10,0],[10,8],[3,8],[3,2],[8,2],[8,6],[4,6],[4,3],[12,3]]
+
+"""
+PENTAGON DEMO
+"""
+# start = [0,0,0]
+# goal_points = [[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
+
+"""
+SINE WAVE DEMO
+"""
+# start = [-2,-2,0]
+# goal_points = [[0,0],[1.98,2.375],[4.04,4.23],[6.28,5],[8.75,4.079],[10.51,2.45],[12,0],[14,-2]]
+
+"""PARALLEL PARK DEMO"""
+# start = [10,10,m.pi/2]
+# goal_points = [[10,10],[6,6],[3,2],[3,0]]
+
+
 dummy_gp = copy.deepcopy(goal_points)
-goal = [15,9]
+
+
+#need to calculate goal theta last two points
+last_pt = dummy_gp[-1]
+second_last_pt = dummy_gp[-2]
+theta_g = m.atan2((last_pt[1]-second_last_pt[1]),(last_pt[0]-second_last_pt[0]))
+goalx,goaly = goal_points[-1]
+goal = [goalx,goaly,theta_g]
 # goal_points = [[2,2]]
 x,y,theta = start
 v = 1
@@ -158,7 +274,7 @@ while len(dummy_gp) >1:
     plt.axis('scaled')
     plt.xlim(-5,15)
     plt.ylim(-5,15)
-    # plt.plot(gp_array[:,0],gp_array[:,1])
+    plt.plot(gp_array[:,0],gp_array[:,1])
     plt.plot(start[0],start[1],'co')
     plt.plot(xt,yt,'ro')
 
@@ -171,12 +287,43 @@ while len(dummy_gp) >1:
     y_traj.append(y)
     plt.plot(x_traj,y_traj,'--')
     x,y,theta,s = seek_one([x,y,theta],[xt,yt])
+    print(m.degrees(s))
     plt.pause(0.0001)
+if ALIGN_TO_GOAL_LINE:
+    pt1 = goal_points[-2]
+    pt2 = goal_points[-1]
+    while wrapToPi(abs(theta - goal[2]))>0.1:
+        _,_,xt,yt,_ = calc_perp(x,y,pt1,pt2)
+        plt.cla()
+        plt.axis('scaled')
+        plt.xlim(-5,15)
+        plt.ylim(-5,15)
+        plt.plot(gp_array[:,0],gp_array[:,1])
+        plt.plot(start[0],start[1],'co')
+        plt.plot(xt,yt,'ro')
+
+        if DRAW_DIFF:
+            draw_robot(x,y,theta)
+        if DRAW_PALLET:
+            dpj(x,y,theta,s)
+
+        x_traj.append(x)
+        y_traj.append(y)
+        plt.plot(x_traj,y_traj,'--')
+        x,y,theta,s = seek_one([x,y,theta],[xt,yt])
+        print(m.degrees(s))
+        plt.pause(0.0001)
+
+plt.show()
+
+#there might be a situation when the final orienation is not matching the intended orientation
+
+
+
+
 
 
 
 
 
 #make the speed explicitly 0 after this
-
-plt.show()

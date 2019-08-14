@@ -57,8 +57,8 @@ def draw_robot(x,y,theta):
         plt.plot([h[0],e[0]],[h[1],e[1]],'k')
 
     plt.axis('scaled')
-    plt.xlim(-2,15)
-    plt.ylim(-3,10)
+    # plt.xlim(-2,15)
+    # plt.ylim(-3,10)
     # plt.show()
 
 def update(x,y,theta,v,w):

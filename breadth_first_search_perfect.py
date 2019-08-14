@@ -34,7 +34,7 @@ def get_neighbours(current,obstacles):
 def animate_robot(pt):
     pass
 
-def main():
+def main_file():
     plt.figure(figsize=(10,8))
     x_max = 20
     y_max = 20
@@ -94,7 +94,11 @@ def main():
     plt.plot(pathx,pathy,'g')
     plt.pause(0.01)
 
-    plt.show()
+    # plt.show()
+    final_path = []
+    for i in range(len(pathx)):
+        final_path.append([pathx[i],pathy[i]])
+    return(final_path)
 
 if __name__ == "__main__":
-    main()
+    main_file()
