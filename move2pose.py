@@ -10,6 +10,7 @@ import copy
 import random
 import numpy as np
 import sys, os
+import time
 
 from drawing_pallet_jack import dpj
 

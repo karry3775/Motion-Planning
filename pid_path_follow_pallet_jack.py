@@ -5,6 +5,7 @@ import numpy as np
 from draw_diff_drive import draw_robot
 from drawing_pallet_jack import dpj
 import copy
+import time
 
 DRAW_PALLET = True
 DRAW_DIFF = False
@@ -182,7 +183,8 @@ def path_track(path):
 """
  DEMO CODE
 """
-
+tic = time.time()
+plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
 # start = [2.5,10,0]
 # goal_points = [[5,8],[10,5],[15,9],[20,1],[25,21],[1,20],[3,25]] #successfull path follow
 # start = [0,0,0]
@@ -209,9 +211,20 @@ goal_points = [[0,0],[10,0],[10,8],[3,8],[3,2],[8,2],[8,6],[4,6],[4,3],[12,3]]
 """
 PENTAGON DEMO
 """
-# start = [0,0,0]
-# goal_points = [[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
+start = [0,0,0]
+goal_points = [[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
 
+"""
+Square then pentagon demo
+"""
+start = [0,0,0]
+goal_points = [[0,0],[10,0],[10,10],[0,10],[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
+
+"""
+Figure 8 demo
+"""
+start = [0,0,0]
+goal_points = [[0,0],[5,0],[9,4],[9,6.5],[2.5,8],[-4,6.5],[-4,4],[0,0],[5,0],[9,-4],[9,-6.5],[2.5,-8],[-4,-6.5],[-4,-4],[0,0]]
 """
 SINE WAVE DEMO
 """
@@ -272,9 +285,9 @@ while len(dummy_gp) >1:
         print(skip)
     plt.cla()
     plt.axis('scaled')
-    plt.xlim(-5,15)
-    plt.ylim(-5,15)
-    plt.plot(gp_array[:,0],gp_array[:,1])
+    plt.xlim(-10,15)
+    plt.ylim(-10,15)
+    plt.plot(gp_array[:,0],gp_array[:,1],'--',label="Target-path")
     plt.plot(start[0],start[1],'co')
     plt.plot(xt,yt,'ro')
 
@@ -285,7 +298,7 @@ while len(dummy_gp) >1:
 
     x_traj.append(x)
     y_traj.append(y)
-    plt.plot(x_traj,y_traj,'--')
+    plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
     x,y,theta,s = seek_one([x,y,theta],[xt,yt])
     print(m.degrees(s))
     plt.pause(0.0001)
@@ -296,9 +309,9 @@ if ALIGN_TO_GOAL_LINE:
         _,_,xt,yt,_ = calc_perp(x,y,pt1,pt2)
         plt.cla()
         plt.axis('scaled')
-        plt.xlim(-5,15)
-        plt.ylim(-5,15)
-        plt.plot(gp_array[:,0],gp_array[:,1])
+        plt.xlim(-10,15)
+        plt.ylim(-10,15)
+        plt.plot(gp_array[:,0],gp_array[:,1],'--',label="Target-path")
         plt.plot(start[0],start[1],'co')
         plt.plot(xt,yt,'ro')
 
@@ -309,12 +322,15 @@ if ALIGN_TO_GOAL_LINE:
 
         x_traj.append(x)
         y_traj.append(y)
-        plt.plot(x_traj,y_traj,'--')
+        plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
         x,y,theta,s = seek_one([x,y,theta],[xt,yt])
         print(m.degrees(s))
         plt.pause(0.0001)
-
+print("Time taken: {} s".format(time.time()-tic))
+plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
+plt.legend()
 plt.show()
+
 
 #there might be a situation when the final orienation is not matching the intended orientation
 
