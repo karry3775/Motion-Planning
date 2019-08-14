@@ -9,7 +9,7 @@ import time
 
 DRAW_PALLET = True
 DRAW_DIFF = False
-ALIGN_TO_GOAL_LINE = False
+ALIGN_TO_GOAL_LINE = True
 
 def update(x,y,theta,v,s):
     dt = 0.1
@@ -22,10 +22,11 @@ def update(x,y,theta,v,s):
 def wrapToPi(theta):
     return m.atan2(m.sin(theta),m.cos(theta))
 
-def calc_perp(x,y,pt1,pt2):
+def calc_perp(x,y,theta,pt1,pt2):
     #this also needs to tell me if the xt,yt point has gone beyond pt2
     skip = False
     ld = 0.5
+    # ld = 1.25
     #find the equation of the line
     x1,y1 = pt1
     x2,y2 = pt2
@@ -41,6 +42,16 @@ def calc_perp(x,y,pt1,pt2):
         check_angle = m.atan2((yt-y2),(xt-x2))
         if check_angle == phi:
             skip = True
+            xt = x2
+            yt = y2
+        #checking if the point is behind pt1
+        check_angle2 = m.atan2((y1-yt),(x1-xt))
+        if check_angle2 == phi:
+            xt = x1 + m.cos(phi)*0.1
+            yt = y1 + m.sin(phi)*0.1
+        if check_angle2 == phi and abs(wrapToPi(phi-theta))>m.pi/2:
+            xt = x1 + m.cos(phi)*4
+            yt = y1 + m.sin(phi)*4
         else:
             #everything is fine
             pass
@@ -55,12 +66,20 @@ def calc_perp(x,y,pt1,pt2):
         if sign>0:
             if yt>y2:
                 skip = True
+            if yt<y1:
+                yt = y1
+                xt = x2
+                yt = y2
         elif yt<y2:
             skip = True
+            if yt>y1:
+                yt = y1
+            xt = x2
+            yt = y2
 
     return(xp,yp,xt,yt,skip)
 
-def calc_target(x,y,goal_points):
+def calc_target(x,y,theta,goal_points):
     if len(goal_points) >=3:
         goal_points = goal_points[0:3]
     else:
@@ -72,7 +91,7 @@ def calc_target(x,y,goal_points):
     for i in range(len(goal_points)-1):
         pt1 = goal_points[i]
         pt2 = goal_points[i+1]
-        xp,yp,xt,yt,skip = calc_perp(x,y,pt1,pt2)
+        xp,yp,xt,yt,skip = calc_perp(x,y,theta,pt1,pt2)
         perp_dist = m.sqrt((x-xp)**2 + (y-yp)**2)
         if perp_dist < best_dist:
             best_dist = perp_dist
@@ -86,7 +105,8 @@ def calc_target(x,y,goal_points):
 
 def seek_one(start,goal):
     x,y,theta = start
-    Kp = 0.85
+    # Kp = 0.85
+    Kp = 1
     Kpd = 0.1
     v = 1
     #thets calculations
@@ -129,7 +149,7 @@ def path_track(path):
     skip = False
     while len(dummy_gp) >1:
         #first step would be to find the target point
-        target,proximity,skip = calc_target(x,y,dummy_gp)
+        target,proximity,skip = calc_target(x,y,theta,dummy_gp)
         xt,yt = target
         if proximity<0.1 or skip==True:
             dummy_gp.pop(0)
@@ -137,9 +157,9 @@ def path_track(path):
             print(skip)
         plt.cla()
         plt.axis('scaled')
-        plt.xlim(-5,15)
-        plt.ylim(-5,15)
-        plt.plot(gp_array[:,0],gp_array[:,1])
+        plt.xlim(-10,15)
+        plt.ylim(-10,15)
+        plt.plot(gp_array[:,0],gp_array[:,1],'--')
         plt.plot(start[0],start[1],'co')
         plt.plot(xt,yt,'ro')
 
@@ -150,7 +170,7 @@ def path_track(path):
 
         x_traj.append(x)
         y_traj.append(y)
-        plt.plot(x_traj,y_traj,'--')
+        plt.plot(x_traj,y_traj,'r')
         x,y,theta,s = seek_one([x,y,theta],[xt,yt])
         print(m.degrees(s))
         plt.pause(0.0001)
@@ -163,7 +183,7 @@ def path_track(path):
             plt.axis('scaled')
             plt.xlim(-5,15)
             plt.ylim(-5,15)
-            plt.plot(gp_array[:,0],gp_array[:,1])
+            plt.plot(gp_array[:,0],gp_array[:,1],'--')
             plt.plot(start[0],start[1],'co')
             plt.plot(xt,yt,'ro')
 
@@ -174,15 +194,121 @@ def path_track(path):
 
             x_traj.append(x)
             y_traj.append(y)
-            plt.plot(x_traj,y_traj,'--')
+            plt.plot(x_traj,y_traj,'r')
             x,y,theta,s = seek_one([x,y,theta],[xt,yt])
             print(m.degrees(s))
             plt.pause(0.0001)
     # plt.show()
 
+def path_track2(path):
+    """
+    SAMPLING STARTS HERE
+    """
+    final_path = []
+    x,y = path[0]
+    sample_rate = 2
+    final_path.append([x,y])
+    for x,y in path:
+        xf,yf = final_path[-1]
+        if m.sqrt((xf-x)**2 + (yf-y)**2)>sample_rate:
+            final_path.append([x,y])
+        else:
+            continue
+
+    """
+    SAMPLING FINISHES HERE
+    """
+
+    prev_path = path
+    path = final_path
+    prev_path_array = np.array(prev_path)
+
+    tic = time.time()
+    xstart, ystart = path[0]
+    start = [xstart,ystart,0]
+    goal_points = path
+
+    dummy_gp = copy.deepcopy(goal_points)
+
+
+    #need to calculate goal theta last two points
+    last_pt = dummy_gp[-1]
+    second_last_pt = dummy_gp[-2]
+    theta_g = m.atan2((last_pt[1]-second_last_pt[1]),(last_pt[0]-second_last_pt[0]))
+    goalx,goaly = goal_points[-1]
+    goal = [goalx,goaly,theta_g]
+
+    x,y,theta = start
+    v = 1
+    s = 0
+    gp_array = np.array(goal_points)
+    x_traj = []
+    y_traj = []
+
+    skip = False
+    while len(dummy_gp) >1:
+        #first step would be to find the target point
+        target,proximity,skip = calc_target(x,y,theta,dummy_gp)
+        xt,yt = target
+        if proximity<0.3 or skip==True:
+            dummy_gp.pop(0)
+        if skip==True:
+            #need to set the value of target to something
+            target, proximity, skip = calc_target(x,y,theta,dummy_gp)
+            print(skip)
+        plt.cla()
+        plt.axis('scaled')
+        plt.xlim(-10,15)
+        plt.ylim(-10,15)
+        plt.plot(gp_array[:,0],gp_array[:,1],'m--',label="Sampled-Target-path")
+        plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
+        plt.plot(start[0],start[1],'co')
+        plt.plot(xt,yt,'ro')
+
+        if DRAW_DIFF:
+            draw_robot(x,y,theta)
+        if DRAW_PALLET:
+            dpj(x,y,theta,s)
+
+        x_traj.append(x)
+        y_traj.append(y)
+        plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
+        x,y,theta,s = seek_one([x,y,theta],[xt,yt])
+        print(m.degrees(s))
+        plt.pause(0.0001)
+    if ALIGN_TO_GOAL_LINE:
+        pt1 = goal_points[-2]
+        pt2 = goal_points[-1]
+        while wrapToPi(abs(theta - goal[2]))>0.1:
+            _,_,xt,yt,_ = calc_perp(x,y,pt1,pt2)
+            plt.cla()
+            plt.axis('scaled')
+            plt.xlim(-10,15)
+            plt.ylim(-10,15)
+            plt.plot(gp_array[:,0],gp_array[:,1],'m--',label="Sampled-Target-path")
+            plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
+            plt.plot(start[0],start[1],'co')
+            plt.plot(xt,yt,'ro')
+
+            if DRAW_DIFF:
+                draw_robot(x,y,theta)
+            if DRAW_PALLET:
+                dpj(x,y,theta,s)
+
+            x_traj.append(x)
+            y_traj.append(y)
+            plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
+            x,y,theta,s = seek_one([x,y,theta],[xt,yt])
+            print(m.degrees(s))
+            plt.pause(0.0001)
+    print("Time taken: {} s".format(time.time()-tic))
+    plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
+    plt.legend()
+    plt.show()
+
 """
  DEMO CODE
-"""
+
 tic = time.time()
 plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
 # start = [2.5,10,0]
@@ -198,40 +324,42 @@ plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
 # start = [-2,-2,0]
 # goal_points = [[0,0],[1,2],[1,-5],[5,6]]
 """
-SQUARE DEMO
+# SQUARE DEMO
 """
 start = [0,0,0]
 goal_points = [[0,0],[10,0],[10,10],[0,10],[0,0],[10,0],[10,10],[0,10],[0,0],[10,0],[10,10],[0,10],[0,0]] #circular polygon follow
 """
-SPIRAL DEMO
+# SPIRAL DEMO
 """
 start = [0,0,0]
 goal_points = [[0,0],[10,0],[10,8],[3,8],[3,2],[8,2],[8,6],[4,6],[4,3],[12,3]]
 
 """
-PENTAGON DEMO
+# PENTAGON DEMO
 """
-start = [0,0,0]
-goal_points = [[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
+# start = [0,0,0]
+# goal_points = [[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
 
 """
-Square then pentagon demo
+# Square then pentagon demo
 """
-start = [0,0,0]
-goal_points = [[0,0],[10,0],[10,10],[0,10],[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
+# start = [0,0,0]
+# goal_points = [[0,0],[10,0],[10,10],[0,10],[0,0],[5,0],[9,4],[2.5,8],[-4,4],[0,0]]
 
 """
-Figure 8 demo
+# Figure 8 demo
 """
-start = [0,0,0]
-goal_points = [[0,0],[5,0],[9,4],[9,6.5],[2.5,8],[-4,6.5],[-4,4],[0,0],[5,0],[9,-4],[9,-6.5],[2.5,-8],[-4,-6.5],[-4,-4],[0,0]]
+# start = [0,0,0]
+# goal_points = [[0,0],[5,0],[9,4],[9,6.5],[2.5,8],[-4,6.5],[-4,4],[0,0],[5,0],[9,-4],[9,-6.5],[2.5,-8],[-4,-6.5],[-4,-4],[0,0]]
 """
-SINE WAVE DEMO
+# SINE WAVE DEMO
 """
 # start = [-2,-2,0]
 # goal_points = [[0,0],[1.98,2.375],[4.04,4.23],[6.28,5],[8.75,4.079],[10.51,2.45],[12,0],[14,-2]]
 
-"""PARALLEL PARK DEMO"""
+"""
+# PARALLEL PARK DEMO
+"""
 # start = [10,10,m.pi/2]
 # goal_points = [[10,10],[6,6],[3,2],[3,0]]
 
@@ -331,7 +459,7 @@ plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
 plt.legend()
 plt.show()
 
-
+"""
 #there might be a situation when the final orienation is not matching the intended orientation
 
 
