@@ -48,15 +48,15 @@ def calc_perp(x,y,theta,pt1,pt2):
         """
         MEASURES TO PREVENT WEIRD BEHAVIOUR
         """
-        check_angle2 = m.atan2((y1-yt),(x1-xt))
-        if check_angle2 == phi:
-            xt = x1 + m.cos(phi)*ld
-            yt = y1 + m.sin(phi)*ld
-        elif abs(wrapToPi(phi-theta))>m.radians(80):  #this means that the target point has cleared the pt1
-            xt = x1 + m.cos(phi)*4
-            yt = y1 + m.sin(phi)*4
-        else:
-            pass
+        # check_angle2 = m.atan2((y1-yt),(x1-xt))
+        # if check_angle2 == phi:
+        #     xt = x1 + m.cos(phi)*ld
+        #     yt = y1 + m.sin(phi)*ld
+        # elif abs(wrapToPi(phi-theta))>m.radians(80):  #this means that the target point has cleared the pt1
+        #     xt = x1 + m.cos(phi)*4
+        #     yt = y1 + m.sin(phi)*4
+        # else:
+        #     pass
 
     except ZeroDivisionError:
         xp = x1
@@ -440,8 +440,8 @@ goal_points = [[0,0],[10,0],[10,10],[0,10],[0,0],[10,0],[10,10],[0,10],[0,0],[10
 """
 # SPIRAL DEMO
 """
-start = [0,0,0]
-goal_points = [[0,0],[10,0],[10,8],[3,8],[3,2],[8,2],[8,6],[4,6],[4,3],[12,3]]
+# start = [0,0,0]
+# goal_points = [[0,0],[10,0],[10,8],[3,8],[3,2],[8,2],[8,6],[4,6],[4,3],[12,3]]
 
 """
 # PENTAGON DEMO

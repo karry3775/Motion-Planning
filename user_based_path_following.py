@@ -1,7 +1,10 @@
-from pid_path_follow_pallet_jack import path_track2
+from pid_path_follow_pallet_jack import path_track3
 import matplotlib.pyplot as plt
 import math as m
 
+"""
+CODE FOR GETTING LINES BY THE USER
+"""
 class LineBuilder:
     def __init__(self, line):
         plt.xlim(-10,15)
@@ -28,23 +31,14 @@ plt.show()
 
 xs = linebuilder.xs
 ys = linebuilder.ys
+"""
+LINE GETTING CODE ENDS HERE
+"""
 
 path = []
 for i in range(len(xs)):
     path.append([xs[i],ys[i]])
-# """
-# TRACKING BY SAMPLING
-# """
-# #need to properly sample paths for effective tracking
-# final_path = []
-# x,y = path[0]
-# final_path.append([x,y])
-# for x,y in path:
-#     xf,yf = final_path[-1]
-#     if m.sqrt((xf-x)**2 + (yf-y)**2)>3:
-#         final_path.append([x,y])
-#     else:
-#         continue
 
-path_track2(path)
+thetas = m.atan2((ys[1]-ys[0]),(xs[1]-xs[0]))
+path_track3(path,thetas)
 plt.show()
