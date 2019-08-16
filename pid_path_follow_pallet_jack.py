@@ -48,10 +48,10 @@ def calc_perp(x,y,theta,pt1,pt2):
         """
         MEASURES TO PREVENT WEIRD BEHAVIOUR
         """
-        # check_angle2 = m.atan2((y1-yt),(x1-xt))
-        # if check_angle2 == phi:
-        #     xt = x1 + m.cos(phi)*ld
-        #     yt = y1 + m.sin(phi)*ld
+        check_angle2 = m.atan2((y1-yt),(x1-xt))
+        if check_angle2 == phi:
+            xt = x1 + m.cos(phi)*0.1
+            yt = y1 + m.sin(phi)*0.1
         # elif abs(wrapToPi(phi-theta))>m.radians(80):  #this means that the target point has cleared the pt1
         #     xt = x1 + m.cos(phi)*4
         #     yt = y1 + m.sin(phi)*4
