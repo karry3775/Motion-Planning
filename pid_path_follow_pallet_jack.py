@@ -25,8 +25,8 @@ def wrapToPi(theta):
 def calc_perp(x,y,theta,pt1,pt2):
     #this also needs to tell me if the xt,yt point has gone beyond pt2
     skip = False
-    ld = 0.5
-    # ld = 1.25
+    # ld = 0.5
+    ld = 0.85
     #find the equation of the line
     x1,y1 = pt1
     x2,y2 = pt2
@@ -48,15 +48,15 @@ def calc_perp(x,y,theta,pt1,pt2):
         """
         MEASURES TO PREVENT WEIRD BEHAVIOUR
         """
-        check_angle2 = m.atan2((y1-yt),(x1-xt))
-        if check_angle2 == phi:
-            xt = x1 + m.cos(phi)*ld
-            yt = y1 + m.sin(phi)*ld
-        elif abs(wrapToPi(phi-theta))>m.radians(80):  #this means that the target point has cleared the pt1
-            xt = x1 + m.cos(phi)*4
-            yt = y1 + m.sin(phi)*4
-        else:
-            pass
+        # check_angle2 = m.atan2((y1-yt),(x1-xt))
+        # if check_angle2 == phi:
+        #     xt = x1 + m.cos(phi)*ld
+        #     yt = y1 + m.sin(phi)*ld
+        # elif abs(wrapToPi(phi-theta))>m.radians(80):  #this means that the target point has cleared the pt1
+        #     xt = x1 + m.cos(phi)*4
+        #     yt = y1 + m.sin(phi)*4
+        # else:
+        #     pass
 
     except ZeroDivisionError:
         xp = x1
@@ -108,7 +108,7 @@ def calc_target(x,y,theta,goal_points):
 def seek_one(start,goal):
     x,y,theta = start
     # Kp = 0.85
-    Kp = 1
+    Kp = 0.85
     Kpd = 0.1
     v = 1
     #thets calculations
@@ -304,12 +304,12 @@ def path_track2(path):
             # print(m.degrees(s))
             plt.pause(0.0001)
     print("Time taken: {} s".format(time.time()-tic))
-    plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
+    plt.title('PID BASED CONSTANT SPEED PATH TRACKING OF A PALLET JACK')
     plt.legend()
     plt.show()
 
 def path_track3(path,thetas):
-    thetas = 0 #cancelling user defined theta
+    # thetas = 0 #cancelling user defined theta
     """
     SAMPLING STARTS HERE
     """
@@ -411,13 +411,13 @@ def path_track3(path,thetas):
             # print(m.degrees(s))
             plt.pause(0.0001)
     print("Time taken: {} s".format(time.time()-tic))
-    plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
+    plt.title('PID BASED CONSTANT SPEED PATH TRACKING OF A PALLET JACK')
     plt.legend()
     plt.show()
 
 """
  DEMO CODE
-"""
+
 tic = time.time()
 plt.title('PID BASED PATH TRACKING OF A PALLET JACK')
 # start = [2.5,10,0]
@@ -574,7 +574,7 @@ plt.show()
 
 
 
-
+"""
 
 
 
