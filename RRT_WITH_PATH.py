@@ -27,7 +27,7 @@ for i in range(5):
     x_traj = [start[0]]
     y_traj = [start[1]]
     stride = 0.09
-    sample_goal_rate = 30
+    sample_goal_rate = 20
 
     #plotting starting and end positions
     plt.plot(start[0],start[1],'go')
