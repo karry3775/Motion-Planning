@@ -4,7 +4,7 @@ WE ARE USING REAR KINEMATICS
 from __future__ import division
 from Atsushi_reed_shepp import reeds_shepp_path_planning as RSP
 import matplotlib.pyplot as plt
-from RSP_TRACKING_FUNC_REAR import path_track3
+from RSP_TRACKING_FUNC_REAR import path_track4
 # from RSP_TRACKING_REAR_W_REAR_PERP import path_track3
 import numpy as np
 import math as m
@@ -73,77 +73,103 @@ start = [0,0,-m.pi/2]
 # goals = [[2.0,-2.0,-m.pi/2],[2.0,-4.0,-m.pi/2],[0.0,-2.0,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-4.0,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-3.5,-m.pi/2],[2.0,-4.0,-m.pi/2],[0.0,-3.5,-m.pi/2],[0.0,-4.0,-m.pi/2]]
-goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[0.0,-6.0,-m.pi/2]]
-x_traj = []
-y_traj = []
-x_traj1 = []
-y_traj1 = []
-x_traj2 = []
-y_traj2 = []
-x_traj3 = []
-y_traj3 = []
-i = 0
-for goal in goals:
-    px, py = RSP_path(start, goal)
-    if i==0:
-        x_traj1 = px
-        y_traj1 = py
-    elif i==1:
-        x_traj2 = px
-        y_traj2 = py
-    elif i==2:
-        x_traj3 = px
-        y_traj3 = py
-    elif i==3:
-        x_traj4 = px
-        y_traj4 = py
-
-    x_traj.extend(px)
-    y_traj.extend(py)
-    start = goal
-    plt.pause(1)
-    i+=1
-plt.cla()
-plt.plot(x_traj, y_traj, 'k--')
-plt.pause(1)
-# plt.show()
-
-"""
-THE CODE ABOVE THIS HAS OBTAINED A REEDS SHEPP PATH USING ATSUSHIS PACKAGE
-NOW THE TASK IS TO FIND THE CUSPS AND SEGREGATE INTO THREE DIFFERENT PATHS
-IDEALLY SINCE WE ARE OBTAINING THREE DIFFERENT PATHS WE CAN DIRECTLY USE THEM
-BUT WE WOULD LIKE TO DEVELOP THIS METHODOLOGY TO ADDRESS ANY SITUATION FOR FUTURE
-"""
-#As it turns out we need a function than can identify cusps
-master_path = segregate_paths(x_traj, y_traj)
-num_path = 0
-print(len(master_path))
-plt.cla()
-for paths in master_path:
-    path_array = np.array(paths)
-    print(path_array)
-    print(path_array.shape)
-    print("------------------------\n")
-    plt.plot(path_array[:,0],path_array[:,1])
-    # plt.pause(1)
-    num_path+=1
-print("{} paths found!".format(num_path))
-# plt.show()
-
-"""
-After obtaining all the subpaths we can do path_track3
-"""
-theta = start[2] #was negative before
+# goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[0.0,-6.0,-m.pi/2
+goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[5.0,-6.0,-m.pi/2],[5.0,0.0,-m.pi/2]]
+theta = start[2]
 x_lim = (-5,6)
 y_lim = (-7.5,4)
-for paths in master_path:
-    theta = path_track3(paths, theta,x_lim, y_lim)
-    path_array = np.array(paths)
-    plt.plot(path_array[:,0],path_array[:,1])
+x_traj = []
+y_traj = []
+"""
+SEQUENTIAL PATH PLANNING
+"""
+for goal in goals:
+    px, py = RSP_path(start, goal)
+    master_path = segregate_paths(px, py)
+    x_traj.extend(px)
+    y_traj.extend(py)
 
-for paths in master_path:
-    path_array = np.array(paths)
-    plt.plot(path_array[:,0],path_array[:,1])
+    for paths in master_path:
+        x,y,theta = path_track4(paths, theta,x_lim, y_lim, x_traj, y_traj)
+        path_array = np.array(paths)
+        plt.plot(path_array[:,0],path_array[:,1])
+    start = [x,y,theta]
+
+
+
+"""
+ENDS HERE
+"""
+# x_traj = []
+# y_traj = []
+# x_traj1 = []
+# y_traj1 = []
+# x_traj2 = []
+# y_traj2 = []
+# x_traj3 = []
+# y_traj3 = []
+# i = 0
+# for goal in goals:
+#     px, py = RSP_path(start, goal)
+#     if i==0:
+#         x_traj1 = px
+#         y_traj1 = py
+#     elif i==1:
+#         x_traj2 = px
+#         y_traj2 = py
+#     elif i==2:
+#         x_traj3 = px
+#         y_traj3 = py
+#     elif i==3:
+#         x_traj4 = px
+#         y_traj4 = py
+#
+#     x_traj.extend(px)
+#     y_traj.extend(py)
+#     start = goal
+#     plt.pause(1)
+#     i+=1
+# plt.cla()
+# plt.plot(x_traj, y_traj, 'k--')
+# plt.pause(1)
+# # plt.show()
+#
+# """
+# THE CODE ABOVE THIS HAS OBTAINED A REEDS SHEPP PATH USING ATSUSHIS PACKAGE
+# NOW THE TASK IS TO FIND THE CUSPS AND SEGREGATE INTO THREE DIFFERENT PATHS
+# IDEALLY SINCE WE ARE OBTAINING THREE DIFFERENT PATHS WE CAN DIRECTLY USE THEM
+# BUT WE WOULD LIKE TO DEVELOP THIS METHODOLOGY TO ADDRESS ANY SITUATION FOR FUTURE
+# """
+# #As it turns out we need a function than can identify cusps
+# master_path = segregate_paths(x_traj, y_traj)
+# num_path = 0
+# print(len(master_path))
+# plt.cla()
+# for paths in master_path:
+#     path_array = np.array(paths)
+#     print(path_array)
+#     print(path_array.shape)
+#     print("------------------------\n")
+#     plt.plot(path_array[:,0],path_array[:,1])
+#     # plt.pause(1)
+#     num_path+=1
+# print("{} paths found!".format(num_path))
+# # plt.show()
+#
+# """
+# After obtaining all the subpaths we can do path_track3
+# """
+# theta = start[2] #was negative before
+# x_lim = (-5,6)
+# y_lim = (-7.5,4)
+# for paths in master_path:
+#     theta = path_track3(paths, theta,x_lim, y_lim)
+#     path_array = np.array(paths)
+#     plt.plot(path_array[:,0],path_array[:,1])
+#
+# for paths in master_path:
+#     path_array = np.array(paths)
+#     plt.plot(path_array[:,0],path_array[:,1])
 
 plt.show()
 

@@ -572,10 +572,170 @@ def path_track3(path,thetas,x_lim,y_lim):
 
 
     print("Time taken: {} s".format(time.time()-tic))
-    plt.title('PID BASED CONSTANT SPEED PATH TRACKING OF A PALLET JACK')
+    # plt.title('PID BASED CONSTANT SPEED PATH TRACKING OF A PALLET JACK')
+    plt.title('PURE-PURSUIT BASED PATH TRACKING OF A PALLET JACK')
     plt.legend()
     # plt.show()
-    return theta
+    return x,y,theta
+
+def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot):
+    # thetas = 0 #cancelling user defined theta
+    win_zoom = 7
+    """
+    SAMPLING STARTS HERE
+    """
+    final_path = []
+    x,y = path[0]
+    sample_rate = 1 #best was 2 #changed again from 0.2
+    final_path.append([x,y])
+    for x,y in path:
+        xf,yf = final_path[-1]
+        if m.sqrt((xf-x)**2 + (yf-y)**2)>sample_rate:
+            final_path.append([x,y])
+        else:
+            continue
+
+    if path[-1] not in final_path:
+        final_path.append(path[-1])
+
+
+    """
+    SAMPLING FINISHES HERE
+    """
+
+    prev_path = path
+    path = final_path
+    prev_path_array = np.array(prev_path)
+
+    tic = time.time()
+    xstart, ystart = path[0]
+    start = [xstart,ystart,thetas]
+    goal_points = path
+
+    dummy_gp = copy.deepcopy(goal_points)
+
+
+    #need to calculate goal theta last two points
+    last_pt = dummy_gp[-1]
+    second_last_pt = dummy_gp[-2]
+    theta_g = -m.atan2((last_pt[1]-second_last_pt[1]),(last_pt[0]-second_last_pt[0]))
+    goalx,goaly = goal_points[-1]
+    goal = [goalx,goaly,theta_g]
+
+    x,y,theta = start
+    v = 1
+    s = 0
+    gp_array = np.array(goal_points)
+    x_traj = []
+    y_traj = []
+
+    skip = False
+    while m.sqrt((x - goal[0])**2 + (y - goal[1])**2)>0.2:
+        #first step would be to find the target point
+        target,proximity,skip,perp = calc_target(x,y,theta,dummy_gp)
+        xt,yt = target
+        if (proximity<0.1 or skip==True) and len(dummy_gp)>2:
+            dummy_gp.pop(0)
+        if len(dummy_gp)==2:
+            print(dummy_gp)
+            angle = theta_g
+            xt = last_pt[0] + 0*m.cos(theta_g)
+            yt = last_pt[1] + 0*m.sin(-theta_g)
+            plt.plot(xt,yt,'ko')
+
+        if skip==True:
+            #need to set the value of target to something
+            target, proximity, skip, perp = calc_target(x,y,theta,dummy_gp)
+            print(skip)
+        plt.cla()
+        plt.axis('scaled')
+        plt.xlim(x-win_zoom,x+win_zoom)
+        plt.ylim(y-win_zoom,y+win_zoom)
+        plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
+        plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
+        plt.plot(x_traj_tot, y_traj_tot, 'g--',label="TOTAL PATH")
+        plt.plot(start[0],start[1],'co')
+        plt.plot(xt,yt,'ro')
+
+        if DRAW_DIFF:
+            draw_robot(x,y,theta)
+        if DRAW_PALLET:
+            dpj(x,y,theta,s)
+
+        x_traj.append(x)
+        y_traj.append(y)
+        plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
+        x,y,theta,s = seek_one_pure_pursuit([x,y,theta],[xt,yt],goal,perp)
+        # print(m.degrees(s))
+        plt.pause(0.0001)
+    if ALIGN_TO_GOAL_LINE:
+        pt1 = goal_points[-2]
+        pt2 = goal_points[-1]
+        while wrapToPi(abs(theta - goal[2]))>0.1:
+            _,_,xt,yt,_ = calc_perp(x,y,theta,pt1,pt2)
+            plt.cla()
+            plt.axis('scaled')
+            plt.xlim(x-win_zoom,x+win_zoom)
+            plt.ylim(y-win_zoom,y+win_zoom)
+            plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
+            plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
+            plt.plot(x_traj_tot, y_traj_tot, 'g--',label="TOTAL PATH")
+            plt.plot(start[0],start[1],'co')
+            plt.plot(xt,yt,'ro')
+
+            if DRAW_DIFF:
+                draw_robot(x,y,theta)
+            if DRAW_PALLET:
+                dpj(x,y,theta,s)
+
+            x_traj.append(x)
+            y_traj.append(y)
+            plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
+            x,y,theta,s = seek_one_pure_pursuit([x,y,theta],[xt,yt],goal,perp)
+            # print(m.degrees(s))
+            plt.pause(0.0001)
+    if ROTATE_AT_POINT:
+        """
+        This will come into picture when the final goal orienation has been met
+        """
+        #first need to decide whether to rotate clockwise or counter clockwise
+        Kpv = 0.3
+        heading_error = wrapToPi(theta_g + theta)
+        while abs(heading_error) > 0.05:
+            plt.cla()
+            plt.axis('scaled')
+            plt.xlim(x-win_zoom,x+win_zoom)
+            plt.ylim(y-win_zoom,y+win_zoom)
+            plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
+            plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
+            plt.plot(x_traj_tot, y_traj_tot, 'g--',label="TOTAL PATH")
+            plt.plot(start[0],start[1],'co')
+            v = Kpv*heading_error
+
+            if v>0.325:
+                v = 0.325
+            if v<-0.325:
+                v = -0.325
+
+            s = m.pi/2
+            x,y,theta  = update_rear(x,y,theta,v,s)
+            heading_error = wrapToPi(theta_g + theta)
+            if DRAW_DIFF:
+                draw_robot(x,y,theta)
+            if DRAW_PALLET:
+                dpj(x,y,theta,s)
+            x_traj.append(x)
+            y_traj.append(y)
+            plt.plot(x_traj,y_traj,'r',label="Actual-Path-taken")
+            plt.pause(0.0001)
+
+
+    print("Time taken: {} s".format(time.time()-tic))
+    # plt.title('PID BASED CONSTANT SPEED PATH TRACKING OF A PALLET JACK')
+    plt.title('PURE-PURSUIT BASED PATH TRACKING OF A PALLET JACK')
+    plt.legend()
+    # plt.show()
+    return x,y,theta
 
 """
  DEMO CODE
