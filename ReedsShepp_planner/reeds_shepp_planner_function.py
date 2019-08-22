@@ -40,6 +40,7 @@ def draw_circles(pose):
     return(center_L,center_R)
 
 def find_tangents(C1, C2, dir1, dir2):
+    INNER_TANGENTS = True
     tangent_pts1 = []
     tangent_pts2 = []
     start = C1
@@ -128,6 +129,7 @@ def find_tangents(C1, C2, dir1, dir2):
 
     else:
         print("[INFO] Inner tangents dont exist")
+        INNER_TANGENTS = False
 
     #####################################
     # OUTER TANGENTS
@@ -149,11 +151,13 @@ def find_tangents(C1, C2, dir1, dir2):
     x_out22 = x2 + r2*m.cos(ang2)
     y_out22 = y2 + r2*m.sin(ang2)
 
-    if dir1 == "right" and dir2 == "right":
+    if (dir1 == "right" and dir2 == "right") or INNER_TANGENTS==False:
         tangent_pts1.append([x_out11, y_out11])
         tangent_pts2.append([x_out21, y_out21])
         # plt.plot([x_out11, x_out21],[y_out11, y_out21])
-    if dir1 == "left" and dir2 == "left":
+    if (dir1 == "left" and dir2 == "left") or INNER_TANGENTS==False:
+        tangent_pts1 = []
+        tangent_pts2 = []
         tangent_pts1.append([x_out12, y_out12])
         tangent_pts2.append([x_out22, y_out22])
         # plt.plot([x_out12, x_out22],[y_out12, y_out22])

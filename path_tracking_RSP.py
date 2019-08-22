@@ -1,16 +1,17 @@
 import matplotlib.pyplot as plt
 from docking_reeds_shepp_specific import RSP as rsp_flipped
 from reeds_shepp_planner_function import RSP as rsp_normal
+from RSP_TRACKING_FUNC import path_track
 import random
 import math as m
 
 plt.cla()
 plt.axis('scaled')
-plt.xlim(-20,20)
-plt.ylim(-20,20)
+plt.xlim(-5,20)
+plt.ylim(-5,20)
 
-start = [0,0,m.radians(90)]
-goal_orig = [2,-5,m.pi/2]
+start = [0,10,m.radians(90)]
+goal_orig = [5,0,m.pi/2]
 
 goal = [goal_orig[0], goal_orig[1] + 2, goal_orig[2]]
 print("start: {}| goal: {}".format(start, goal_orig))
@@ -63,5 +64,9 @@ while abs(y_traj[-1] - goal_orig[1])>0.1:
     y_traj.append(y_traj[-1] - 0.05)
 
 plt.plot(x_traj, y_traj,'k--')
+final_path = []
+for i in range(len(x_traj)):
+    final_path.append([x_traj[i],y_traj[i]])
 
+path_track(final_path)
 plt.show()

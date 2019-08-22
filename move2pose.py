@@ -262,12 +262,12 @@ def pure_pursuit():
     print("\n ##################################################################### \n")
     global DISABLE_SIGN, ROTATE_TO_ANGLE
     ld = 5
-    # goal = [4,2,math.pi/3]
-    goal = [random.uniform(0,10),random.uniform(0,10),random.uniform(-math.pi,math.pi)]
+    goal = [1,-4,math.pi/2]
+    # goal = [random.uniform(0,10),random.uniform(0,10),random.uniform(-math.pi,math.pi)]
     pt1, pt2 = calc_pts(goal)# """ THIS IS WHERE THE LOGIC OF GENERATING WAY POINTS WOULD GO"""
 
-    start = [random.uniform(0,10),random.uniform(0,10),random.uniform(-math.pi,math.pi)]
-    # start = [1,2,math.pi-math.pi/3]
+    # start = [random.uniform(0,10),random.uniform(0,10),random.uniform(-math.pi,math.pi)]
+    start = [0,0,math.pi/2]
     v = 10
     s = 0
     L = 2.33 #base length
@@ -609,7 +609,7 @@ def motion_demo():
 
 if __name__ == "__main__":
     try:
-        for i in range(5):
+        for i in range(1):
             pure_pursuit()
         # pure_pursuit()
         enablePrint()

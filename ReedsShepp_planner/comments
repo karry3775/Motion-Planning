@@ -1,0 +1,6 @@
+It turns out that the front kinematics is not going to work.
+What we need is just the backward kinematics
+
+SO functions for now should be.
+1. Main file would be identify_cusps_in_reed_shepps_rear
+2. RSP_TRACKING_REAR
