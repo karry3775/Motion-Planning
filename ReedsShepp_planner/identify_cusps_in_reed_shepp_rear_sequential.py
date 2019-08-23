@@ -8,6 +8,8 @@ from RSP_TRACKING_FUNC_REAR import path_track4
 # from RSP_TRACKING_REAR_W_REAR_PERP import path_track3
 import numpy as np
 import math as m
+import random
+import copy
 
 def wrapToPi(theta):
     return m.atan2(m.sin(theta),m.cos(theta))
@@ -36,7 +38,8 @@ def segregate_paths(x_traj, y_traj):
 
 
 def RSP_path(start, goal):
-    curvature = 1/2.33
+    radius = 4
+    curvature = 1/radius
     step_size = 0.1
 
     px, py, pyaw, mode, clen = RSP(
@@ -69,17 +72,42 @@ def process_path(x_traj, y_traj):
     return(final_path, thetas)
 
 
-start = [0,0,-m.pi/2]
+# start = [0,0,-m.pi/2]
+# start = [random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
+start = [4,-4,-m.pi/2]
+
 # goals = [[2.0,-2.0,-m.pi/2],[2.0,-4.0,-m.pi/2],[0.0,-2.0,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-4.0,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-3.5,-m.pi/2],[2.0,-4.0,-m.pi/2],[0.0,-3.5,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[0.0,-6.0,-m.pi/2
-goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[5.0,-6.0,-m.pi/2],[5.0,0.0,-m.pi/2]]
+# goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[5.0,-6.0,-m.pi/2],[5.0,0.0,-m.pi/2]]
+# goals = [[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
+#          ,[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
+#          ,[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],
+#          [random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]]
+goals = [[4,0,-m.pi],[2,-3,-m.pi/2]]
+goals = [[2,-3,-m.pi/2],[2,-4,-m.pi/2]]
+
+
 theta = start[2]
 x_lim = (-5,6)
 y_lim = (-7.5,4)
 x_traj = []
 y_traj = []
+x_traj_global = []
+y_traj_global = []
+
+"""
+OBTAINING THE FULL PATH PLAN
+"""
+dummy_start = copy.deepcopy(start)
+for gl in goals:
+    px, py = RSP_path(dummy_start, gl)
+
+
+    x_traj_global.extend(px)
+    y_traj_global.extend(py)
+    dummy_start = gl
 """
 SEQUENTIAL PATH PLANNING
 """
@@ -90,9 +118,10 @@ for goal in goals:
     y_traj.extend(py)
 
     for paths in master_path:
-        x,y,theta = path_track4(paths, theta,x_lim, y_lim, x_traj, y_traj)
+        x,y,theta = path_track4(paths, theta,x_lim, y_lim, x_traj, y_traj,goals)
         path_array = np.array(paths)
         plt.plot(path_array[:,0],path_array[:,1])
+        plt.pause(1)
     start = [x,y,theta]
 
 

@@ -32,6 +32,11 @@ def update_rear(x,y,theta,v,s):
 def wrapToPi(theta):
         return m.atan2(m.sin(theta),m.cos(theta))
 
+def plot_goals(goals):
+    for goal in goals:
+        plt.arrow(goal[0], goal[1], 1.5*m.cos(goal[2]), 1.5*m.sin(goal[2]),
+          head_width=0.1, head_length=0.2)
+
 def seek_one_pure_pursuit(start,goal,true_goal,perp):
 
     signal = False
@@ -578,7 +583,7 @@ def path_track3(path,thetas,x_lim,y_lim):
     # plt.show()
     return x,y,theta
 
-def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot):
+def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot,goals):
     # thetas = 0 #cancelling user defined theta
     win_zoom = 7
     """
@@ -653,7 +658,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot):
         plt.ylim(y-win_zoom,y+win_zoom)
         plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
         plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
-        plt.plot(x_traj_tot, y_traj_tot, 'g--',label="TOTAL PATH")
+        plt.plot(x_traj_tot, y_traj_tot, 'g--',label="REPLANNED PATH")
+        plot_goals(goals)
         plt.plot(start[0],start[1],'co')
         plt.plot(xt,yt,'ro')
 
@@ -679,7 +685,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot):
             plt.ylim(y-win_zoom,y+win_zoom)
             plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
             plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
-            plt.plot(x_traj_tot, y_traj_tot, 'g--',label="TOTAL PATH")
+            plt.plot(x_traj_tot, y_traj_tot, 'g--',label="REPLANNED PATH")
+            plot_goals(goals)
             plt.plot(start[0],start[1],'co')
             plt.plot(xt,yt,'ro')
 
@@ -708,7 +715,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot):
             plt.ylim(y-win_zoom,y+win_zoom)
             plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
             plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
-            plt.plot(x_traj_tot, y_traj_tot, 'g--',label="TOTAL PATH")
+            plt.plot(x_traj_tot, y_traj_tot, 'g--',label="REPLANNED PATH")
+            plot_goals(goals)
             plt.plot(start[0],start[1],'co')
             v = Kpv*heading_error
 
