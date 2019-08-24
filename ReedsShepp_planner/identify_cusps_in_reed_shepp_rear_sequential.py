@@ -4,8 +4,10 @@ WE ARE USING REAR KINEMATICS
 from __future__ import division
 from Atsushi_reed_shepp import reeds_shepp_path_planning as RSP
 import matplotlib.pyplot as plt
-from RSP_TRACKING_FUNC_REAR import path_track4
+# from RSP_TRACKING_FUNC_REAR import path_track4
+# from RSP_TRACKING_FUNC_REAR_PID import path_track4
 # from RSP_TRACKING_REAR_W_REAR_PERP import path_track3
+from RSP_TRACKING_DIFF_TRAVERSAL_PID import path_track4
 import numpy as np
 import math as m
 import random
@@ -38,7 +40,7 @@ def segregate_paths(x_traj, y_traj):
 
 
 def RSP_path(start, goal):
-    radius = 4
+    radius = 2.0 #4 worked best
     curvature = 1/radius
     step_size = 0.1
 
@@ -72,21 +74,41 @@ def process_path(x_traj, y_traj):
     return(final_path, thetas)
 
 
-# start = [0,0,-m.pi/2]
+start = [0,0,-m.pi/2]
 # start = [random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
-start = [4,-4,-m.pi/2]
+# start = [4,-4,-m.pi/2]
 
 # goals = [[2.0,-2.0,-m.pi/2],[2.0,-4.0,-m.pi/2],[0.0,-2.0,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-4.0,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-3.5,-m.pi/2],[2.0,-4.0,-m.pi/2],[0.0,-3.5,-m.pi/2],[0.0,-4.0,-m.pi/2]]
 # goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[0.0,-6.0,-m.pi/2
 # goals = [[2.0,-4.0,-m.pi/2],[2.0,-6.0,-m.pi/2],[0.0,-4.0,-m.pi/2],[5.0,-6.0,-m.pi/2],[5.0,0.0,-m.pi/2]]
-# goals = [[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
-#          ,[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
-#          ,[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],
-#          [random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]]
-goals = [[4,0,-m.pi],[2,-3,-m.pi/2]]
-goals = [[2,-3,-m.pi/2],[2,-4,-m.pi/2]]
+goals = [[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
+         ,[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]
+         ,[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],
+         [random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)],[random.uniform(0,10),random.uniform(0,10),random.uniform(-m.pi/2, m.pi/2)]]
+# goals = [[4,0,-m.pi],[2,-3,-m.pi/2]]
+# goals = [[2,-3,-m.pi/2],[2,-4,-m.pi/2]]
+# goals = [[2,-3.5,-m.pi/2],[2,-5.0,-m.pi/2],[0,-2.0,-m.pi/2],[0,-3.5,-m.pi/2],[0,-5.0,-m.pi/2]]
+
+"""
+DPD MANEUVER
+"""
+start = [0,0,-m.pi/2]
+goals = [[2,-3.5,-m.pi/2],[2,-5.0,-m.pi/2],[0,-2.0,-m.pi/2],[0,-3.5,-m.pi/2],[0,-5.0,-m.pi/2]]
+
+"""
+PARALLEL PARK
+"""
+# start = [0,0,-m.pi/2]
+# goals = [[2,-3.5,-m.pi/2],[2,-5.0,-m.pi/2],[2,0.0,-m.pi/2]]
+
+"""
+PID SPECIFIC
+"""
+# start = [5,0,-m.pi/2]
+# goals = [[0,-8.0,-m.pi/2]]
+
 
 
 theta = start[2]

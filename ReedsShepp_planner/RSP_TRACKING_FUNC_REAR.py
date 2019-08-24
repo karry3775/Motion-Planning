@@ -7,11 +7,13 @@ from draw_diff_drive import draw_robot
 from drawing_pallet_jack_rev import dpj
 import copy
 import time
+import random
 
 DRAW_PALLET = True
 DRAW_DIFF = False
 ALIGN_TO_GOAL_LINE = False
 ROTATE_AT_POINT = False
+PLOT_ARROW = False
 
 def update(x,y,theta,v,s):
     dt = 0.1
@@ -24,6 +26,12 @@ def update(x,y,theta,v,s):
 def update_rear(x,y,theta,v,s):
     dt = 0.1
     L = 2.33
+    RANDOM = True
+    if RANDOM:
+        noise_perc = 0.0
+        v = v + noise_perc*random.uniform(-0.325,0.325)
+        s = s + noise_perc*random.uniform(-m.pi/2,m.pi/2)
+
     x+= (v/2)*(m.cos(theta-s) + m.cos(theta+s))*dt
     y+= (v/2)*(m.sin(theta-s) + m.sin(theta+s))*dt
     theta+= -(v/L)*m.sin(s)*dt
@@ -66,17 +74,22 @@ def seek_one_pure_pursuit(start,goal,true_goal,perp):
     #     print("*******************REVERSING***********************************")
     """
     LONGITUDINAL CONTROL USING PID
-
-    Kpd = 0.5
-    v = Kpd*m.sqrt((xs-true_goal[0])**2+ (ys-true_goal[1])**2)
-    if v>0.325:
-        v = 0.325
-    if v<-0.325:
-        v = -0.325
     """
 
+    # Kpd = 0.5
+    # v = Kpd*m.sqrt((xs-true_goal[0])**2+ (ys-true_goal[1])**2)
+    # if v>0.325:
+    #     v = 0.325
+    # if v<-0.325:
+    #     v = -0.325
+
     """
-    LATERAL CONTROL
+    FULL SPEED CONTROL
+    """
+    v = 0.325
+
+    """
+    LATERAL CONTROL USING PURE PURSUIT
     """
     ld = m.sqrt((xs - xt)**2 + (ys - yt)**2) #this is the lookahead distance
     #need to find the angle alpha
@@ -87,12 +100,22 @@ def seek_one_pure_pursuit(start,goal,true_goal,perp):
     """
     LONGITUDINAL CONTROL USING CURVATURE BASED LAW
     """
-    add = 1/(ld/(2*m.sin(alpha+0.00001)))
-    v = abs(0.325/(0.325 + add ))
-    if v>0.325:
-        v = 0.325
-    if v<-0.325:
-        v = -0.325
+    # add = 1/(ld/(2*m.sin(alpha+0.00001)))
+    # scale_factor = 1.5
+    # v = scale_factor*abs(0.325/(0.325 + add ))
+    # if v>0.325:
+    #     v = 0.325
+    # if v<-0.325:
+    #     v = -0.325
+    """
+    LATERAL CONTROL USING PID
+    """
+    # if alpha >= m.pi/2:
+    #     alpha = (m.pi - alpha)
+    # if alpha <= -m.pi/2:
+    #     alpha = -(m.pi - abs(alpha))
+    # Kps = 2
+    # s = -Kps*alpha
 
     """
     decision on front or back based on heading_error signal
@@ -591,7 +614,7 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot,goals):
     """
     final_path = []
     x,y = path[0]
-    sample_rate = 1 #best was 2 #changed again from 0.2
+    sample_rate = 0.5 #best was 2 #changed again from 0.2 , 1
     final_path.append([x,y])
     for x,y in path:
         xf,yf = final_path[-1]
@@ -635,7 +658,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot,goals):
     y_traj = []
 
     skip = False
-    while m.sqrt((x - goal[0])**2 + (y - goal[1])**2)>0.2:
+    dist_thresh = 0.05
+    while m.sqrt((x - goal[0])**2 + (y - goal[1])**2)>dist_thresh:
         #first step would be to find the target point
         target,proximity,skip,perp = calc_target(x,y,theta,dummy_gp)
         xt,yt = target
@@ -659,7 +683,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot,goals):
         plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
         plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
         plt.plot(x_traj_tot, y_traj_tot, 'g--',label="REPLANNED PATH")
-        plot_goals(goals)
+        if PLOT_ARROW:
+            plot_goals(goals)
         plt.plot(start[0],start[1],'co')
         plt.plot(xt,yt,'ro')
 
@@ -686,7 +711,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot,goals):
             plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
             plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
             plt.plot(x_traj_tot, y_traj_tot, 'g--',label="REPLANNED PATH")
-            plot_goals(goals)
+            if PLOT_ARROW:
+                plot_goals(goals)
             plt.plot(start[0],start[1],'co')
             plt.plot(xt,yt,'ro')
 
@@ -716,7 +742,8 @@ def path_track4(path,thetas,x_lim,y_lim, x_traj_tot, y_traj_tot,goals):
             plt.plot(gp_array[:,0],gp_array[:,1],'m',label="Sampled-Target-path")
             plt.plot(prev_path_array[:,0],prev_path_array[:,1],'c--',label="Actual-Target-path")
             plt.plot(x_traj_tot, y_traj_tot, 'g--',label="REPLANNED PATH")
-            plot_goals(goals)
+            if PLOT_ARROW:
+                plot_goals(goals)
             plt.plot(start[0],start[1],'co')
             v = Kpv*heading_error
 
