@@ -273,9 +273,7 @@ def interpolate(ind, l, m, maxc, ox, oy, oyaw, px, py, pyaw, directions):
 
 def generate_local_course(L, lengths, mode, maxc, step_size):
     npoint = math.trunc(L / step_size) + len(lengths) + 4
-    #debug
-    print(npoint)
-    print(L)
+
     px = [0.0 for i in range(npoint)]
     py = [0.0 for i in range(npoint)]
     pyaw = [0.0 for i in range(npoint)]

@@ -40,6 +40,7 @@ def segregate_paths(x_traj, y_traj):
 
 
 def RSP_path(start, goal):
+    print(start, goal)
     radius = 2.0 #4 worked best
     curvature = 1/radius
     step_size = 0.1
@@ -108,7 +109,11 @@ PID SPECIFIC
 """
 # start = [5,0,-m.pi/2]
 # goals = [[0,-8.0,-m.pi/2]]
-
+"""
+DEBUG
+"""
+start = [5,2.33,-1.57]
+goals = [[2,-3.5,-1.57]]
 
 
 theta = start[2]

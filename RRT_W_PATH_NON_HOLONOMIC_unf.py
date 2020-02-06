@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import random
 import math as m
 from queue import Queue
+from Atsushi_reed_shepp import reeds_shepp_path_planning as RSP
+
 #lets start with a simple rrt without any path storage
 def get_theta(x1,y1,x2,y2):
     theta = m.atan2(y2-y1,x2-x1)
@@ -21,13 +23,35 @@ def get_nearest(x_traj, y_traj, xr, yr):
 
     return best_pt
 
-def local_planner():
-    pass
+def RSP_path(start, goal):
+    """
+    REED SHEPPS RSP
+    """
+    curvature = 1/2.33
+    step_size = 0.1
+
+    px, py, pyaw, mode, clen = RSP(
+        start[0], start[1], start[2], goal[0], goal[1], goal[2], curvature, step_size)
+
+    plt.plot(px, py, label="final course " + str(mode))
+
+    # plotting
+    plt.arrow(start[0],start[1],2*m.cos(start[2]),2*m.sin(start[2]),color='g',head_width=0.5, head_length=1)
+    plt.arrow(goal[0],goal[1],2*m.cos(goal[2]),2*m.sin(goal[2]),color='g',head_width=0.5, head_length=1)
+
+    plt.legend()
+    plt.grid(True)
+    plt.axis("equal")
+    plt.xlim(-10,10)
+    plt.ylim(-10,10)
+
+    return(px,py)
+
 
 for i in range(1):
     plt.clf()
     start = (5,5,0)
-    goal = (random.uniform(0,10), random.uniform(0, 10))
+    goal = (random.uniform(0,10), random.uniform(0, 10),random.uniform(-m.pi/2, m.pi/2))
     iter = 0
     buffer = 1000
     x_traj = [start[0]]
@@ -54,21 +78,28 @@ for i in range(1):
         if random.uniform(0,100) > sample_goal_rate:
             x_rand = random.uniform(0,10)
             y_rand = random.uniform(0,10)
+            theta_rand = random.uniform(-m.pi/2, m.pi/2)
         else:
             x_rand = goal[0]
             y_rand = goal[1]
+            theta_rand = goal[2]
 
         """
-        SINCE WE ARE DOING NON-HOLONOMIC WE NEED ANOTHER PLANNER THAN THE STRAIGHT line
+        SINCE WE ARE DOING NON-HOLONOMIC | WE NEED ANOTHER PLANNER THAN THE STRAIGHT line
         PLANNER WE HAVE BEEN USING
         """
-        #draw a line to the randomly generated point
+        #draw a RSP to the randomly generated point
         nearest = get_nearest(x_traj,y_traj,x_rand,y_rand)
         """
         CODE TO CHANGE
+        """
+        RSP_path([],[])
+
+
         phi = get_theta(nearest[0],nearest[1],x_rand,y_rand)
         x_gen = nearest[0] + m.cos(phi)*stride
         y_gen = nearest[1] + m.sin(phi)*stride
+        """
         """
         x_traj.append(x_gen)
         y_traj.append(y_gen)
