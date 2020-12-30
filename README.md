@@ -5,3 +5,6 @@
 
 ## Path finding using Rapidly Exploring Random Trees (RRTS) 
 ![RRT-path](gifs/rrt_with_path.gif)
+
+## Pure pursuit based Docking demonstration  
+![ppbdm](gifs/move_to_pose.gif)
